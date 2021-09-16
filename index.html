@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en-us">
+
+    <head>
+
+        <!-- Meta -->
+        <meta charset="utf-8">
+        <meta http-equiv="x-ua-compatible" content="ie=edge">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+
+        <title>Dog Lovers at Ziggeo</title>
+        <meta name="description" content="Dog sanctuary made for the Techsylvania Workshop">
+        <meta name="robots" content="noindex, nofollow" />
+
+        <!-- The compiled CSS file -->
+        <link rel="stylesheet" href="css/main.css">
+
+        <!-- Web fonts -->
+        <link href="https://fonts.googleapis.com/css?family=Karla:400,700" rel="stylesheet">
+
+        <!-- favicon.ico. Place these in the root directory. -->
+        <link rel="shortcut icon" href="favicon.ico">
+
+        <link rel="stylesheet" href="//assets.ziggeo.com/v1-stable/ziggeo.css" />
+        <script src="//assets.ziggeo.com/v1-stable/ziggeo.js"></script>
+
+        <script>
+            var config = {
+                "apptoken": "r1912da1e223072a78c8aa024878e272",
+                "api_url": "http://localhost/dogs-api/get_dogs.php"
+            }
+        </script>
+        <script>
+            var ziggeoApp = new ZiggeoApi.V2.Application({
+                token: config.apptoken,
+            });
+            var recorder;
+            ziggeoApp.on("ready", function() {
+                // Let's get the ziggeorecorder element reference
+                var element = document.getElementById('dogRecorder');
+
+                // Now let's get the actual Ziggeo embedding / object that we can use
+                recorder = ZiggeoApi.V2.Recorder.findByElement(element);
+
+                recorder.on("verified", function() {
+                    //we get video token of the recorded video
+                    video_token = recorder.get('video');
+                    //we show the button to Submit the form
+                    step1.getElementsByTagName("button")[0].style.display = "block";
+                })
+            });
+
+            var video_token = null;
+            var step1, step2;
+            document.addEventListener("DOMContentLoaded", function(event) {
+                loadVideos();
+                step1 = document.getElementById("step-1");
+                step2 = document.getElementById("step-2");
+                //If video is not submitted we do not allow the button to be clicked (it is also hidden at this time)
+                step1.getElementsByTagName("button")[0].addEventListener("click", function() {
+                    //if video_token is equal to null, we just return back as there is nothing to do..
+                    if (!video_token) {
+                        return;
+                    }
+
+                    //Once the form "Submit" button is clicked the person submitting the form has confirmed that they want
+                    // to submit the video and their details, so we add the same to video and show thank you message
+                    ZiggeoApi.Videos.update(video_token, {
+                        title: document.getElementById("input-title").value,
+                        description: document.getElementById("text-description").value,
+                        data: {
+                            email: document.getElementById("input-email").value
+                        }
+                    });
+
+
+                    //we now hide the first screen - which is the video recorder and our fields
+                    step1.style.display = "none";
+                    //and immediately show the "thank you" screen
+                    step2.style.display = "block";
+                });
+                setInterval(loadVideos, 15000);
+            });
+
+            var addedVideos = {};
+            function loadVideos() {
+                const xmlhttp = new XMLHttpRequest();
+                xmlhttp.onload = function() {
+                    const videos = JSON.parse(this.responseText);
+                    for (var i = 0; i < videos.length; ++i) {
+                        const token = videos[i].token;
+                        if (!addedVideos[token]) {
+                            const title = videos[i].title || "No Title";
+                            const description = videos[i].description || "No Description";
+                            const email = videos[i].email || "No Email";
+                            const stream = videos[i].stream;
+                            const text_elem = `
+                                <div class="player"></div>
+                                <h4>${title}</h4>
+                                <h6>Submitted by ${email}</h6>
+                                <p class="small">${description}</p>`.trim();
+                            const element = document.createElement("div");
+                            element.innerHTML = text_elem;
+                            document.getElementById("grid-list").appendChild(element);
+                            const player = new ZiggeoApi.V2.Player({
+                                element: element.getElementsByClassName("player")[0],
+                                attrs: {
+                                    theme: "minimalist",
+                                    video: token,
+                                    stream: stream,
+                                    width: 360,
+                                    height: 480
+                                }
+                            });
+                            player.activate();
+                            addedVideos[token] = true;
+                        }
+                    }
+                    if (Object.keys(addedVideos).length > 0)
+                        document.getElementById("videos-list").style.display = "block";
+                }
+                //Replace with the correct URL
+                xmlhttp.open("GET", config.api_url);
+                xmlhttp.send();
+            }
+        </script>
+        <style>
+            .grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+                grid-gap: 1rem;
+            }
+            .grid > div {
+                background: #EDE7F6;
+                padding: 1.5rem;
+                border-radius: 1rem;
+            }
+        </style>
+    </head>
+
+    <body>
+
+
+    <!-- Header -->
+    <header class="pt2 pb1 align--center">
+        <div class="container">
+            <p>Dog Lovers at</p>
+            <h1 title="Ziggeo"><img class="logo" src="img/logo.png" alt="Ziggeo"></h1>
+        </div>
+    </header>
+
+    <!-- Body -->
+    <main>
+
+        <div class="container">
+
+            <!-- Dog Info -->
+            <section class="grid-row grid-row--center">
+                <!-- Cute -->
+                <div class="grid-column span-half pt3 pb3 mobile-m order-1">
+                    <div class="relative">
+                        <img class="info-image relative z2" src="img/1.jpg" alt="Cabin">
+                        <div class="pattern pattern--left-down absolute z1"></div>
+                    </div>
+                </div>
+                <div class="grid-column span-half pt3 pb3 mobile-m order-2">
+                    <h3>Cute</h3>
+                    <p>It's a fact that dogs are amongst the cutest animals of them all. No one can resist a face like that.</p>
+                </div>
+                <!-- Friendly -->
+                <div class="grid-column span-half pt3 pb3 mobile-m order-4">
+                    <h3>Friendly</h3>
+                    <p>They also make the best companions for everyone. When you're sad they comfort you. When you're happy they are happy with you.</p>
+                </div>
+                <div class="grid-column span-half pt3 pb3 mobile-m order-3">
+                    <div class="relative">
+                        <img class="info-image relative z2" src="img/2.jpg" alt="Teepee">
+                        <div class="pattern pattern--right-middle absolute z1"></div>
+                    </div>
+                </div>
+                <!-- Funny -->
+                <div class="grid-column span-half pt3 pb3 mobile-m order-5">
+                    <div class="relative">
+                        <img class="info-image relative z2" src="img/3.jpg" alt="Fishing">
+                        <div class="pattern pattern--left-up absolute z1"></div>
+                    </div>
+                </div>
+                <div class="grid-column span-half pt3 pb3 mobile-m order-6">
+                    <h3>Funny</h3>
+                    <p>And they do it by being the most funny kind of animal there is.</p>
+                </div>
+                <!-- Curious -->
+                <div class="grid-column span-half pt3 pb3 mobile-m order-8">
+                    <h3>Curious</h3>
+                    <p>They also happen to be very keen to discoveries and new adventures.</p>
+                </div>
+                <div class="grid-column span-half pt3 pb3 mobile-m order-7">
+                    <div class="relative">
+                        <img class="info-image relative z2" src="img/4.jpg" alt="Archery">
+                        <div class="pattern pattern--right-down absolute z1"></div>
+                    </div>
+                </div>
+                <!-- Goofy -->
+                <div class="grid-column span-half pt3 pb3 mobile-m order-9">
+                    <div class="relative">
+                        <img class="info-image relative z2" src="img/5.jpg" alt="Canoeing">
+                        <div class="pattern pattern--left-middle absolute z1"></div>
+                    </div>
+                </div>
+                <div class="grid-column span-half pt3 pb3 mobile-m order-10">
+                    <h3>Goofy</h3>
+                    <p>And, of course, they can make you laugh with their clumsy and foolish way to go.</p>
+                </div>
+            </section>
+
+        </div>
+
+        <!-- Dogs list -->
+        <section class="align--center pt2 pb3" id="videos-list" style="display: none">
+            <p class="h2">Do you want to be a dog lover too? Share your dog video with us.</p>
+            <p>Here are some of them!</p>
+            <div class="grid" id="grid-list">
+
+            </div>
+        </section>
+
+        <!-- Video Form -->
+        <section class="bg--secondary-color pt3 pb3" id="step-1">
+            <div class="container">
+                <div class="mb2 align--center">
+                    <h3 class="mb1">Send your dog video</h3>
+                    <p>It will be posted after we finish processing it.</p>
+                </div>
+                <form>
+                    <div class="grid-row">
+                        <div class="grid-column span-half mt1">
+                            <label class="label" for="input-title">Video Title</label>
+                            <input autocomplete="off" class="form-control" id="input-title">
+                        </div>
+                        <div class="grid-column span-half mt1">
+                            <label class="label" for="input-email">Email</label>
+                            <input autocomplete="off" class="form-control" id="input-email" type="email">
+                        </div>
+                    </div>
+                    <label class="label mt1" for="text-description">Describe your video</label>
+                    <textarea autocomplete="off" class="form-control" id="text-description"></textarea>
+                    <!-- ziggeo element -->
+                    <div class="mb2 mt2 align--center">
+                        <ziggeorecorder
+                            ziggeo-theme='minimalist'
+                            ziggeo-video-profile="_square-videos"
+                            ziggeo-meta-profile="_analysis"
+                            ziggeo-effect-profile="_ziggeo-logo"
+                            ziggeo-width="100%"
+                            ziggeo-responsive
+                            id='dogRecorder'
+                        ></ziggeorecorder>
+                        <div class="align--left mt1">
+                            <button class="btn btn--outline" type="button" style="display: none">Send</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </section>
+        <section class="bg--secondary-color pt3 pb3" id="step-2" style="display: none">
+            <div class="mb2 align--center">
+                <h3 class="mb1">Thanks for your doggy submission!</h3>
+                <p>We still have to process it but it will be shown right away.</p>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="pt2 pb2">
+        <div class="container align--center">
+            <p>&copy; Ziggeo</p>
+            <p>Revolutionizing Communication Through Video</p>
+        </div>
+    </footer>
+
+    </body>
+</html>
+
