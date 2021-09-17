@@ -26,8 +26,12 @@
 
         <script>
             var config = {
-                "apptoken": "r1912da1e223072a78c8aa024878e272",
-                "api_url": "http://localhost/dogs-api/get_dogs.php"
+                "apptoken": "APPTOKEN",
+                "api_url": "APIURL",
+                "effect_profile": "",
+                "meta_profile": "",
+                "video_profile": "",
+                "theme": "modern"
             }
         </script>
         <script>
@@ -37,10 +41,26 @@
             var recorder;
             ziggeoApp.on("ready", function() {
                 // Let's get the ziggeorecorder element reference
-                var element = document.getElementById('dogRecorder');
+                const element = document.getElementById('dogRecorder');
 
                 // Now let's get the actual Ziggeo embedding / object that we can use
-                recorder = ZiggeoApi.V2.Recorder.findByElement(element);
+                const recorder_attrs = {
+                    width: "100%",
+                    theme: config.theme || "modern",
+                    responsive: true
+                };
+                if (config.effect_profile)
+                    recorder_attrs["effect-profile"] = config.effect_profile;
+                if (config.meta_profile)
+                    recorder_attrs["meta-profile"] = config.meta_profile;
+                if (config.video_profile)
+                    recorder_attrs["video-profile"] = config.video_profile;
+                recorder = new ZiggeoApi.V2.Recorder({
+                    element: element,
+                    attrs: recorder_attrs
+                });
+
+                recorder.activate();
 
                 recorder.on("verified", function() {
                     //we get video token of the recorded video
@@ -79,7 +99,7 @@
                     //and immediately show the "thank you" screen
                     step2.style.display = "block";
                 });
-                setInterval(loadVideos, 15000);
+                setInterval(loadVideos, 20000);
             });
 
             var addedVideos = {};
@@ -105,7 +125,7 @@
                             const player = new ZiggeoApi.V2.Player({
                                 element: element.getElementsByClassName("player")[0],
                                 attrs: {
-                                    theme: "minimalist",
+                                    theme: config.theme,
                                     video: token,
                                     stream: stream,
                                     width: 360,
@@ -246,15 +266,7 @@
                     <textarea autocomplete="off" class="form-control" id="text-description"></textarea>
                     <!-- ziggeo element -->
                     <div class="mb2 mt2 align--center">
-                        <ziggeorecorder
-                            ziggeo-theme='minimalist'
-                            ziggeo-video-profile="_square-videos"
-                            ziggeo-meta-profile="_analysis"
-                            ziggeo-effect-profile="_ziggeo-logo"
-                            ziggeo-width="100%"
-                            ziggeo-responsive
-                            id='dogRecorder'
-                        ></ziggeorecorder>
+                        <div id="dogRecorder"></div>
                         <div class="align--left mt1">
                             <button class="btn btn--outline" type="button" style="display: none">Send</button>
                         </div>
